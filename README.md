@@ -46,6 +46,8 @@ The `docs/` folder mirrors the front-end so you can enable GitHub Pages (Deploy 
 3. You can still override the value at runtime via **Settings → API Settings**. The saved value is persisted in `localStorage`.
 4. When running the bundled Express server locally (non-static), the app falls back to the same origin instead of the Render URL so local scraping works without reconfiguration.
 
+> Note: The included GitHub Actions workflow publishes **only** the `docs/` directory to Pages so visitors land on the static build with the preconfigured API base. If you make front-end changes under `public/`, remember to mirror them to `docs/` before pushing.
+
 ### Quick Render deploy
 
 1. Create a free Render account and click **New → Web Service**.
