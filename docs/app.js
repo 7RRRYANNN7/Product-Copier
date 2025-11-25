@@ -10,7 +10,8 @@ const state = {
   apiBase: localStorage.getItem('apiBase') || ''
 };
 
-const defaultApiBase = (window.__API_BASE__ || '').replace(/\/$/, '');
+const bakedDefaultApiBase = (window.__API_BASE__ || '').replace(/\/$/, '');
+let defaultApiBaseReachable = true;
 const isStaticHost = window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io');
 
 const refs = {
@@ -109,6 +110,7 @@ const translations = {
       invalidUrl: 'Please enter a valid eBay, Amazon, or AliExpress URL',
       scrapeFailed: 'Failed to scrape product. Please check the URL and try again.',
       apiConfigRequired: 'Set your backend URL in Settings → API Settings before scraping on GitHub Pages or other static hosts.',
+      apiUnavailable: 'Hosted default backend is unreachable. Please set your own backend URL in Settings → API Settings.',
       noImages: 'Please select at least one image',
       copySuccess: '✓ Description copied to clipboard!',
       noDescription: 'No description available',
@@ -151,6 +153,7 @@ const translations = {
       invalidUrl: 'Ingresa un enlace válido de eBay, Amazon o AliExpress',
       scrapeFailed: 'No se pudo extraer el producto. Verifica el enlace y vuelve a intentar.',
       apiConfigRequired: 'Configura la URL del backend en Configuración → API antes de usar GitHub Pages u otros hosts estáticos.',
+      apiUnavailable: 'El backend alojado no está disponible. Configura tu propia URL de backend en Configuración → API.',
       noImages: 'Selecciona al menos una imagen',
       copySuccess: '✓ ¡Descripción copiada al portapapeles!',
       noDescription: 'No hay descripción disponible',
@@ -216,12 +219,16 @@ function hideError() {
   refs.errorBanner.classList.add('hidden');
 }
 
+function getDefaultApiBase() {
+  return defaultApiBaseReachable ? bakedDefaultApiBase : '';
+}
+
 function hasConfiguredApiBase() {
-  return Boolean((state.apiBase || defaultApiBase).trim());
+  return Boolean((state.apiBase || getDefaultApiBase()).trim());
 }
 
 function getApiBase() {
-  return (state.apiBase || defaultApiBase || window.location.origin).replace(/\/$/, '');
+  return (state.apiBase || getDefaultApiBase() || window.location.origin).replace(/\/$/, '');
 }
 
 function syncApiBaseInput() {
@@ -234,6 +241,26 @@ function saveApiBase() {
   state.apiBase = refs.apiBaseInput.value.trim();
   localStorage.setItem('apiBase', state.apiBase);
   syncApiBaseInput();
+}
+
+async function ensureDefaultApiReachable() {
+  if (!bakedDefaultApiBase) return;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
+
+  try {
+    const response = await fetch(`${bakedDefaultApiBase}/api/health`, { signal: controller.signal });
+    if (!response.ok) throw new Error('Healthcheck failed');
+  } catch (error) {
+    defaultApiBaseReachable = false;
+    if (!state.apiBase) {
+      showError(t('errors.apiUnavailable'));
+      syncApiBaseInput();
+    }
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function scrapeProduct() {
@@ -687,7 +714,9 @@ if (state.chats.length) {
   setView('idle');
 }
 
-if (isStaticHost && !hasConfiguredApiBase()) {
-  showError(t('errors.apiConfigRequired'));
-}
+ensureDefaultApiReachable().finally(() => {
+  if (isStaticHost && !hasConfiguredApiBase() && defaultApiBaseReachable) {
+    showError(t('errors.apiConfigRequired'));
+  }
+});
 
