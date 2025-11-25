@@ -10,8 +10,8 @@ const state = {
   apiBase: localStorage.getItem('apiBase') || ''
 };
 
-const defaultApiBase = (window.__API_BASE__ || '').replace(/\/$/, '');
 const isStaticHost = window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io');
+const defaultApiBase = isStaticHost ? (window.__API_BASE__ || '').replace(/\/$/, '') : '';
 
 const refs = {
   views: {

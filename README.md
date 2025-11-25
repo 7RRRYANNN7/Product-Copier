@@ -44,7 +44,7 @@ The `docs/` folder mirrors the front-end so you can enable GitHub Pages (Deploy 
 1. Deploy `server.js` to a Node-friendly host (Render, Railway, Fly.io, etc.).
 2. The repo now ships with a default backend base of `https://product-copier.onrender.com` in `public/api-config.js` (and mirrored in `docs/api-config.js`) so the GitHub Pages build works immediately with that deployment. Change this value if you host the backend elsewhere.
 3. You can still override the value at runtime via **Settings → API Settings**. The saved value is persisted in `localStorage`.
-4. Leave the config blank when running the bundled Express server locally; it will default to the same origin.
+4. When running the bundled Express server locally (non-static), the app falls back to the same origin instead of the Render URL so local scraping works without reconfiguration.
 
 ### Quick Render deploy
 
