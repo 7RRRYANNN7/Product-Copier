@@ -39,7 +39,7 @@ http://localhost:3000
 
 ## GitHub Pages / static hosting
 
-GitHub Pages is deployed by the `Deploy static docs to Pages` workflow (`.github/workflows/static.yml`). The job rebuilds the `docs/` folder from `public/` during CI and uploads it as the Pages artifact—no need to keep `docs/` tracked in the repo. This avoids constant merge conflicts on generated files (the same ones shown in the screenshot).
+GitHub Pages serves the committed static `docs/` build so the branch-based deployment (`main` → `/docs`) always has an `index.html` available. The `Deploy static docs to Pages` workflow (`.github/workflows/static.yml`) still rebuilds `docs/` from `public/` during CI to keep the checked-in bundle up to date.
 
 Because GitHub Pages cannot run the Node/Express scraper, point the UI at a hosted backend:
 
@@ -55,7 +55,7 @@ npm run sync:docs
 python3 -m http.server 8000 --directory docs
 ```
 
-> Note: `docs/` is generated on demand. Run `npm run sync:docs` after editing `public/` if you need a local preview.
+> Note: `docs/` is generated from `public/` and committed. Run `npm run sync:docs` after editing `public/`, then commit the refreshed `docs/` so GitHub Pages can serve the latest bundle from `/docs`.
 
 ### Quick Render deploy
 
