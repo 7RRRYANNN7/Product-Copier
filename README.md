@@ -41,6 +41,8 @@ http://localhost:3000
 
 GitHub Pages is deployed by the `Deploy static docs to Pages` workflow (`.github/workflows/static.yml`). The job rebuilds the `docs/` folder from `public/` during CI and uploads it as the Pages artifact. The generated `docs/` bundle stays tracked in the repo so branch-based Pages (`main` + `/docs`) also works—just remember to re-run `npm run sync:docs` after changing files in `public/` so the static bundle stays current.
 
+> Tip: The static bundle now includes a `404.html` that redirects to the app so GitHub Pages visitors landing on `/Product-Copier` or deep links don’t see a 404.
+
 Because GitHub Pages cannot run the Node/Express scraper, point the UI at a hosted backend:
 
 1. Deploy `server.js` to a Node-friendly host (Render, Railway, Fly.io, etc.).
