@@ -45,6 +45,7 @@ The `docs/` folder mirrors the front-end so you can enable GitHub Pages (Deploy 
 2. The repo now ships with a default backend base of `https://product-copier.onrender.com` in `public/api-config.js` (and mirrored in `docs/api-config.js`) so the GitHub Pages build works immediately with that deployment. Change this value if you host the backend elsewhere.
 3. You can still override the value at runtime via **Settings → API Settings**. The saved value is persisted in `localStorage`.
 4. When running the bundled Express server locally (non-static), the app falls back to the same origin instead of the Render URL so local scraping works without reconfiguration.
+5. Use `npm run sync:docs` to regenerate the `docs/` folder from the latest `public/` sources before pushing. The GitHub Actions workflow also runs this script so Pages always receives an up-to-date static bundle.
 
 > Note: The included GitHub Actions workflow publishes **only** the `docs/` directory to Pages so visitors land on the static build with the preconfigured API base. If you make front-end changes under `public/`, remember to mirror them to `docs/` before pushing.
 

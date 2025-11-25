@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "sync:docs": "node scripts/sync-docs.js"
   },
   "keywords": ["ebay", "scraper", "product", "images"],
   "author": "",
