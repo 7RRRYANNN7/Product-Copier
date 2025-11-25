@@ -39,22 +39,30 @@ http://localhost:3000
 
 ## GitHub Pages / static hosting
 
-The `docs/` folder mirrors the front-end so you can enable GitHub Pages (Deploy from branch → main → `/docs`). Because GitHub Pages cannot run the Node/Express scraper, point the UI at a hosted backend:
+GitHub Pages is deployed via the `Deploy static docs to Pages` workflow (`.github/workflows/static.yml`). Set **Settings → Pages → Source** to **GitHub Actions** (not `Deploy from a branch`). The workflow builds a fresh `docs/` folder from `public/` on every push to `main`, then uploads it as the Pages artifact, so no generated files need to live in the repo.
+
+Because GitHub Pages cannot run the Node/Express scraper, point the UI at a hosted backend:
 
 1. Deploy `server.js` to a Node-friendly host (Render, Railway, Fly.io, etc.).
-2. The repo now ships with a default backend base of `https://product-copier.onrender.com` in `public/api-config.js` (and mirrored in `docs/api-config.js`) so the GitHub Pages build works immediately with that deployment. Change this value if you host the backend elsewhere.
+2. The repo ships with a default backend base of `https://product-copier.onrender.com` in `public/api-config.js` so the GitHub Pages build works immediately with that deployment. Change this value if you host the backend elsewhere.
 3. You can still override the value at runtime via **Settings → API Settings**. The saved value is persisted in `localStorage`.
 4. When running the bundled Express server locally (non-static), the app falls back to the same origin instead of the Render URL so local scraping works without reconfiguration.
-5. Use `npm run sync:docs` to regenerate the `docs/` folder from the latest `public/` sources before pushing. The GitHub Actions workflow also runs this script so Pages always receives an up-to-date static bundle.
 
-> Note: The included GitHub Actions workflow publishes **only** the `docs/` directory to Pages so visitors land on the static build with the preconfigured API base. If you make front-end changes under `public/`, remember to mirror them to `docs/` before pushing.
+Local preview of the static bundle:
+
+```bash
+npm run sync:docs
+python3 -m http.server 8000 --directory docs
+```
+
+> Note: `docs/` is ignored in git to avoid merge conflicts. The Pages workflow regenerates it automatically; re-run `npm run sync:docs` locally if you need a fresh static copy.
 
 ### Quick Render deploy
 
 1. Create a free Render account and click **New → Web Service**.
 2. Point it at this repository and keep the defaults; Render will use `render.yaml` to install dependencies and run `npm start`.
 3. Once deployed, copy the Render service URL (for example, `https://product-copier.onrender.com`).
-4. Set that URL in `public/api-config.js` (and therefore `docs/api-config.js`), commit, and push so the static GitHub Pages build can call the hosted backend without extra configuration.
+4. Set that URL in `public/api-config.js`, commit, and push so the static GitHub Pages build can call the hosted backend without extra configuration. (The Pages workflow will mirror it into `docs/` during deployment.)
 
 > Tip: When you open the GitHub Pages build without a configured backend, the UI now shows a setup banner reminding you to set the API base in Settings → API Settings so scrapes don't fail on static hosts.
 
