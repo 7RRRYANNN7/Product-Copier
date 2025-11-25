@@ -39,12 +39,12 @@ http://localhost:3000
 
 ## GitHub Pages / static hosting
 
-GitHub Pages can be served directly from the tracked `docs/` folder (deploy from branch: **main → /docs**) or via the `Deploy static docs to Pages` workflow (`.github/workflows/static.yml`). Either way, the `docs/` bundle is generated from `public/`; run `npm run sync:docs` before pushing so the latest static files are published.
+GitHub Pages is deployed by the `Deploy static docs to Pages` workflow (`.github/workflows/static.yml`). The job rebuilds the `docs/` folder from `public/` during CI and uploads it as the Pages artifact—no need to keep `docs/` tracked in the repo. This avoids constant merge conflicts on generated files (the same ones shown in the screenshot).
 
 Because GitHub Pages cannot run the Node/Express scraper, point the UI at a hosted backend:
 
 1. Deploy `server.js` to a Node-friendly host (Render, Railway, Fly.io, etc.).
-2. The repo ships with a default backend base of `https://product-copier.onrender.com` in `public/api-config.js` (mirrored into `docs/api-config.js`) so the GitHub Pages build works immediately with that deployment. Change this value if you host the backend elsewhere.
+2. The repo ships with a default backend base of `https://product-copier.onrender.com` in `public/api-config.js`; the workflow copies this value into the generated `docs/api-config.js` automatically. Change it in `public/api-config.js` before publishing if you host the backend elsewhere.
 3. You can still override the value at runtime via **Settings → API Settings**. The saved value is persisted in `localStorage`.
 4. When running the bundled Express server locally (non-static), the app falls back to the same origin instead of the Render URL so local scraping works without reconfiguration.
 
@@ -55,7 +55,7 @@ npm run sync:docs
 python3 -m http.server 8000 --directory docs
 ```
 
-> Note: `docs/` is checked in so GitHub Pages can serve it directly; regenerate it with `npm run sync:docs` after editing `public/`.
+> Note: `docs/` is generated on demand. Run `npm run sync:docs` after editing `public/` if you need a local preview.
 
 ### Quick Render deploy
 
