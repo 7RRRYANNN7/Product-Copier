@@ -39,13 +39,13 @@ http://localhost:3000
 
 ## GitHub Pages / static hosting
 
-The `docs/` folder mirrors the front-end so you can enable GitHub Pages (Deploy from branch → main → `/docs`). Because GitHub Pages cannot run the Node/Express scraper, point the UI at a hosted backend:
+The `docs/` folder mirrors the front-end so you can enable GitHub Pages (Deploy from branch → main → `/docs`). Because GitHub Pages cannot run the Node/Express scraper, the UI must call a hosted backend instead of `localhost`:
 
 1. Deploy `server.js` to a Node-friendly host (Render, Railway, Fly.io, etc.).
-2. The static build auto-tests a couple of hosted defaults (`https://product-copier.onrender.com` and `https://product-copier-backend.onrender.com`) so GitHub Pages visitors get a working backend automatically. Update `public/api-config.js` (mirrored in `docs/api-config.js`) if you deploy your own backend.
-3. You can still override the value at runtime via **Settings → API Settings**. The saved value is persisted in `localStorage`.
+2. The static build now probes two baked-in options (`https://product-copier.onrender.com` and `https://product-copier-backend.onrender.com`) and automatically sticks to the first one that responds. If you deploy your own backend, set `window.__API_BASE__` in `public/api-config.js` (the file is copied to `docs/api-config.js`) so both builds test your URL first.
+3. You can override or clear the API URL at runtime via **Settings → API Settings**. Clearing the field removes any stale, saved value and lets the auto-detection retry the defaults.
 4. Leave the config blank when running the bundled Express server locally; it will default to the same origin.
-5. If the baked-in backend is temporarily unreachable, the UI will prompt you to set your own backend URL before scraping so you aren’t stuck with a “Failed to fetch” error on GitHub Pages.
+5. If every tested backend is down, you’ll see a setup banner explaining how to supply your own URL before scraping—this avoids a silent “Failed to fetch” loop on GitHub Pages.
 
 ### Quick Render deploy
 
