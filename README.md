@@ -45,7 +45,7 @@ The `docs/` folder mirrors the front-end so you can enable GitHub Pages (Deploy 
 2. A hosted default (`https://product-copier.onrender.com`) is baked into `public/api-config.js` (and mirrored in `docs/api-config.js`) so the static build works immediately. Update that value if you deploy your own backend.
 3. You can still override the value at runtime via **Settings → API Settings**. The saved value is persisted in `localStorage`.
 4. Leave the config blank when running the bundled Express server locally; it will default to the same origin.
-5. If the baked-in backend is temporarily unreachable, the UI will prompt you to set your own backend URL before scraping.
+5. If the baked-in backend is temporarily unreachable, the UI will prompt you to set your own backend URL before scraping so you aren’t stuck with a “Failed to fetch” error on GitHub Pages.
 
 ### Quick Render deploy
 

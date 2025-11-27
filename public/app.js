@@ -330,7 +330,11 @@ async function scrapeProduct() {
     handleNewChat(productData, platform);
   } catch (error) {
     const message = error.message || t('errors.scrapeFailed');
-    showError(`${message} (API: ${apiBase}/api/scrape)`);
+    if (error.name === 'TypeError' && isStaticHost) {
+      showError(`${t('errors.apiConfigRequired')} The default backend at ${apiBase} could not be reached. Please set your own backend URL in Settings → API Settings.`);
+    } else {
+      showError(`${message} (API: ${apiBase}/api/scrape)`);
+    }
     setView('idle');
   } finally {
     refs.input.scrapeBtn.classList.remove('loading');
