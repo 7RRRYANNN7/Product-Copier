@@ -12,12 +12,17 @@ const state = {
 
 let defaultApiBase = (window.__API_BASE__ || '').replace(/\/$/, '');
 const isStaticHost = window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io');
-const fallbackApiBases = [
-  state.apiBase,
-  defaultApiBase,
-  'https://product-copier.onrender.com',
-  'https://product-copier-backend.onrender.com'
-].filter(Boolean);
+
+function getFallbackApiBases() {
+  const candidates = [
+    state.apiBase,
+    defaultApiBase,
+    'https://product-copier.onrender.com',
+    'https://product-copier-backend.onrender.com'
+  ].filter(Boolean).map((url) => url.replace(/\/$/, ''));
+
+  return Array.from(new Set(candidates));
+}
 
 const refs = {
   views: {
@@ -256,14 +261,27 @@ async function pingApiBase(apiBase, timeoutMs = 8000) {
 }
 
 async function bootstrapApiBase() {
-  if (!isStaticHost || state.apiBase) return;
+  if (!isStaticHost) return;
 
-  for (const candidate of fallbackApiBases) {
-    if (await pingApiBase(candidate)) {
+  for (const candidate of getFallbackApiBases()) {
+    const healthy = await pingApiBase(candidate);
+
+    if (healthy) {
       defaultApiBase = candidate.replace(/\/$/, '');
+
+      if (!state.apiBase) {
+        state.apiBase = defaultApiBase;
+        localStorage.setItem('apiBase', state.apiBase);
+      }
+
       syncApiBaseInput();
       hideError();
       return;
+    }
+
+    if (candidate === state.apiBase) {
+      state.apiBase = '';
+      localStorage.removeItem('apiBase');
     }
   }
 
