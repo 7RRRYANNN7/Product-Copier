@@ -2,4 +2,4 @@
 // Example: window.__API_BASE__ = 'https://product-copier-backend.onrender.com';
 // Leave it blank to default to the current origin when running the built-in Express server locally.
 // A hosted default is provided so static deployments (e.g., GitHub Pages) work out of the box.
-window.__API_BASE__ = window.__API_BASE__ || 'https://product-copier.onrender.com';
+window.__API_BASE__ = window.__API_BASE__ || 'https://product-copier-backend.onrender.com';
