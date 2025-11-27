@@ -10,9 +10,14 @@ const state = {
   apiBase: localStorage.getItem('apiBase') || ''
 };
 
-const bakedDefaultApiBase = (window.__API_BASE__ || '').replace(/\/$/, '');
-let defaultApiBaseReachable = true;
+let defaultApiBase = (window.__API_BASE__ || '').replace(/\/$/, '');
 const isStaticHost = window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io');
+const fallbackApiBases = [
+  state.apiBase,
+  defaultApiBase,
+  'https://product-copier.onrender.com',
+  'https://product-copier-backend.onrender.com'
+].filter(Boolean);
 
 const refs = {
   views: {
@@ -219,16 +224,12 @@ function hideError() {
   refs.errorBanner.classList.add('hidden');
 }
 
-function getDefaultApiBase() {
-  return defaultApiBaseReachable ? bakedDefaultApiBase : '';
-}
-
 function hasConfiguredApiBase() {
-  return Boolean((state.apiBase || getDefaultApiBase()).trim());
+  return Boolean((state.apiBase || defaultApiBase).trim());
 }
 
 function getApiBase() {
-  return (state.apiBase || getDefaultApiBase() || window.location.origin).replace(/\/$/, '');
+  return (state.apiBase || defaultApiBase || window.location.origin).replace(/\/$/, '');
 }
 
 function syncApiBaseInput() {
@@ -243,24 +244,32 @@ function saveApiBase() {
   syncApiBaseInput();
 }
 
-async function ensureDefaultApiReachable() {
-  if (!bakedDefaultApiBase) return;
-
+async function pingApiBase(apiBase, timeoutMs = 8000) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 6000);
-
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${bakedDefaultApiBase}/api/health`, { signal: controller.signal });
-    if (!response.ok) throw new Error('Healthcheck failed');
-  } catch (error) {
-    defaultApiBaseReachable = false;
-    if (!state.apiBase) {
-      showError(t('errors.apiUnavailable'));
-      syncApiBaseInput();
-    }
+    const res = await fetch(`${apiBase.replace(/\/$/, '')}/api/health`, { signal: controller.signal });
+    return res.ok;
+  } catch (_) {
+    return false;
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function bootstrapApiBase() {
+  if (!isStaticHost || state.apiBase) return;
+
+  for (const candidate of fallbackApiBases) {
+    if (await pingApiBase(candidate)) {
+      defaultApiBase = candidate.replace(/\/$/, '');
+      syncApiBaseInput();
+      hideError();
+      return;
+    }
+  }
+
+  showError(t('errors.apiConfigRequired'));
 }
 
 async function scrapeProduct() {
@@ -330,7 +339,11 @@ async function scrapeProduct() {
     handleNewChat(productData, platform);
   } catch (error) {
     const message = error.message || t('errors.scrapeFailed');
-    showError(`${message} (API: ${apiBase}/api/scrape)`);
+    if (error.name === 'TypeError' && isStaticHost) {
+      showError(`${t('errors.apiConfigRequired')} The default backend at ${apiBase} could not be reached. Please set your own backend URL in Settings → API Settings.`);
+    } else {
+      showError(`${message} (API: ${apiBase}/api/scrape)`);
+    }
     setView('idle');
   } finally {
     refs.input.scrapeBtn.classList.remove('loading');
@@ -714,9 +727,9 @@ if (state.chats.length) {
   setView('idle');
 }
 
-ensureDefaultApiReachable().finally(() => {
-  if (isStaticHost && !hasConfiguredApiBase()) {
-    showError(t('errors.apiConfigRequired'));
-  }
-});
+bootstrapApiBase();
+
+if (isStaticHost && !hasConfiguredApiBase()) {
+  showError(t('errors.apiConfigRequired'));
+}
 
